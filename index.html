@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#06033e">
 <title>DPP Services</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
 <style>
   /* Coral Pixels without its color layers (only the title letters), so it renders plain white like in Figma. */
   @font-face { font-family: "Coral Pixels Plain"; src: url(data:font/woff;base64,d09GRgABAAAAAAVMAA4AAAAAB5AAAQABAAAAAAAAAAAAAAAAAAAAAAAAAABHREVGAAAEqAAAABYAAAAWABIACkdQT1MAAATAAAAAXgAAAIgsCySzR1NVQgAABSAAAAApAAAAKrj6uPRPUy8yAAABtAAAAEYAAABggC2B3WNtYXAAAAIcAAAASgAAAFwBQQEjZ2FzcAAABKAAAAAIAAAACAAAABBnbHlmAAACgAAAAQYAAAIgvN65C2hlYWQAAAFEAAAANgAAADYr3zHeaGhlYQAAAXwAAAAgAAAAJAZ6BQBobXR4AAAB/AAAACAAAAAoFhL/s2xvY2EAAAJoAAAAFgAAABYCoQIibWF4cAAAAZwAAAAYAAAAIAANACFuYW1lAAADiAAAAQMAAAIWLfJFO3Bvc3QAAASMAAAAEwAAACD/nwAyAAEAAAABAAAwKeTkXw889QAPA+gAAAAA41NnhwAAAADnAIcM/7P/swK1ArUAAAAGAAIAAAAAAAB4nGNgZGBg4f+3jIGBaev/zf83M21lfsGACrgAruAHgHicY2BkYGDgYlBgYGIAAUYGNAAABKwAL3icY2BhcmecwMDKwMDUxRTBwMDgDaEZ4xiMGJ0ZUAEjMqckMa+U4QCDAkMYC/+/ZQwMLAKMjTA1TNJMW4GUAgMzANXECgQAAHicY8pgYGBkYWBgAtJMWyE0YyOUD8LSIPH/mwFUwwXXeJxjYGBgYmBgYAZiESDJCKZZGDyANB8DB1COjUGBwZXBkyGAIZgh7P9/oLgCgzOYHwTi/3/4f///Pf+3/d/6fzNYNxIAADxDElgAAAAAAAAAAAApAEwAbACAAKEAxQDsARAAAHicZZFBTsMwEEXH7pIFsiILoS5QlQXr1licYu7BLVCuMdeoegvELZBPQcr/Y6tEME5sj5N5/l8jQeR6jm/xIk8iNZVa6iGXPOe54k0l44QZ86oaFlVTRMNjGj65x8n6rj1EoiDiBcR7eRA51pJmZ2IF59nzOanGfa/VvrX1g9vwoutJJDiFujYMaqIaqgQvs9DUHEFGA62ROerDgvq7TX1iDT34jd9fOtTynumP2u4aa8KtOqya/uqG/cVs4zfL439C8RE2DAStbuw7p3di3ztxpL86+yg35zdV1dw06pxg1pi3bp5fJF7PQ9VEVa+DdRiuyJicyb930aU4gxNwbATmH8d3gP4AAHicfZBNTgJBEIW/BsS4cW1czYrAgh8NRiNuxAsYQly4E5VhdGTMMBi5iGfxGJzAs/i6mJgZE0inUq+qXtWramCfe6q42gHwLdtgx5GiDa5wyDrHVa74yXGNpjvO8R5jN8xxnYb74oaEd1akRITMyAg4pSfrC42VeZb3rJQHYuFbMT+VjVlYlKr2ovjReq9Zys+M7+tNm5lJY8ElXb1Q/Z6xZEJHXQlvymaaPlfuVdWpcnNlugXddkm3tXWjkXyoObFqKSdS6Nkb/CkMCr3Fzva/3u03l3l3ivytkW0dlDQDu30qnv+VRFdHdpn/lw9jXsj6snPpn/Ekm5Su27HhL9yUVE0AeJxjYGYAg/9zGIwYsAAAKoMB0QAAAQAB//8ADwABAAAADAAAAAAAAAACAAEAAgAJAAEAAHicZYorDoBADERfC1k+gkMQJAqJJigkF0CgICsI91+6tXQyyczrIEDLwIQu67bT3ccb6SiNkxL5L9f5ROqc3CVqTcxK78uRmcL0P3EeaCwF24pTdRVU1huTfj67CAkAAHicY2BkYGDgYlBj0GBgcnHzCWHgy0ksyWOQYGABijP8/88ABwBtlwVdAAAA) format("woff"); }
@@ -23,6 +24,9 @@
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; overscroll-behavior: none; touch-action: manipulation; }
+  body { position: fixed; inset: 0; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; user-select: none; -webkit-user-select: none; }
+  input { user-select: text; -webkit-user-select: text; }
+  button, label { touch-action: manipulation; }
 
   /* 402px-wide artboard from the Figma frames, scaled to fit the screen. */
   #stage {
@@ -107,7 +111,7 @@
     display: grid; place-items: center;
     transition: transform .18s var(--ease), filter .15s;
   }
-  #dl:hover { filter: brightness(1.08); transform: scale(1.05); }
+  @media (hover: hover) { #dl:hover { filter: brightness(1.08); transform: scale(1.05); } }
   #dl:active { transform: scale(.93); }
   #dl svg { width: 40px; height: 40px; shape-rendering: crispEdges; animation: nudge 1.4s ease-in-out infinite; }
   @keyframes nudge { 50% { transform: translateY(3px); } }
@@ -321,11 +325,42 @@ function buildSteps(items) {
   return [...dates, ...times];
 }
 
+// Arial files next to index.html in the repository (or in a "fonts" folder).
+// Missing files -> Helvetica, which has the same letter widths as Arial.
+const FONT_FILES = {
+  regular: ["Arial.ttf", "fonts/Arial.ttf", "arial.ttf", "fonts/arial.ttf"],
+  bold: ["Arial Bold.ttf", "fonts/Arial Bold.ttf", "arialbd.ttf", "fonts/arialbd.ttf"],
+};
+const fontCache = {};
+async function loadFontBytes(kind) {
+  if (kind in fontCache) return fontCache[kind];
+  for (const path of FONT_FILES[kind]) {
+    try {
+      const res = await fetch(encodeURI(path));
+      if (res.ok) return (fontCache[kind] = new Uint8Array(await res.arrayBuffer()));
+    } catch {}
+  }
+  return (fontCache[kind] = null);
+}
+async function embedFonts(doc, StandardFonts) {
+  const [reg, bd] = await Promise.all([loadFontBytes("regular"), loadFontBytes("bold")]);
+  if ((reg || bd) && window.fontkit) doc.registerFontkit(fontkit);
+  const embed = async (bytes, fallback) => {
+    if (bytes && window.fontkit) { try { return await doc.embedFont(bytes, { subset: true }); } catch {} }
+    return doc.embedFont(fallback);
+  };
+  return {
+    regular: await embed(reg, StandardFonts.Helvetica),
+    bold: await embed(bd, StandardFonts.HelveticaBold),
+  };
+}
+// Start downloading the fonts early, so generating the PDF is quick.
+loadFontBytes("regular"); loadFontBytes("bold");
+
 async function buildPdf() {
   const { PDFDocument, StandardFonts, rgb } = PDFLib;
   const doc = await PDFDocument.load(state.bytes.slice());
-  const regular = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const { regular, bold } = await embedFonts(doc, StandardFonts);
   const pages = doc.getPages();
   const stepOf = new Map();
   for (const g of state.steps) for (const m of g.matches) stepOf.set(m, g);
@@ -407,13 +442,13 @@ function fillStep() {
     const times = state.steps.filter(s => s.type === "time");
     const i = times.indexOf(g);
     $("timeLabel").textContent = times.length === 1 ? "escolha o horário:" : `escolha o ${i + 1}º horário:`;
-    $("time").placeholder = `${pad(g.h)}:${pad(g.m)}`;
+    $("time").placeholder = `${pad(g.h)}:${pad(g.m)} ${g.ap}`;
     $("time").value = "";
-    setAmPm(g.ap);
+    setAmPm(null);
   }
 }
 
-let ampm = "PM";
+let ampm = null; // null = keep the original AM/PM
 function setAmPm(v) {
   ampm = v;
   document.querySelectorAll(".ampm button").forEach(b => b.classList.toggle("on", b.dataset.ap === v));
@@ -451,7 +486,12 @@ $("dateForm").addEventListener("submit", e => { e.preventDefault(); submitStep()
 $("timeForm").addEventListener("submit", e => { e.preventDefault(); submitStep(); });
 // Tapping AM or PM picks it and confirms the time.
 document.querySelectorAll(".ampm button").forEach(b =>
-  b.addEventListener("click", () => { setAmPm(b.dataset.ap); submitStep(); }));
+  b.addEventListener("click", async () => {
+    if (busy) return;
+    setAmPm(b.dataset.ap);
+    await sleep(220); // let the green show before moving on
+    submitStep();
+  }));
 
 function shake(id) {
   const p = $(id); p.classList.remove("shake"); void p.offsetWidth; p.classList.add("shake");
@@ -467,9 +507,9 @@ async function submitStep() {
     if (!t) return shake("pill");
     g.target = t;
   } else {
-    const t = parseTime($("time").value || $("time").placeholder);
+    const t = parseTime($("time").value || `${pad(g.h)}:${pad(g.m)}`);
     if (!t) return shake("tpill");
-    g.target = { ...t, ap: ampm };
+    g.target = { ...t, ap: ampm ?? g.ap };
   }
 
   const next = state.steps[state.step + 1];
