@@ -22,7 +22,7 @@
     --ease: cubic-bezier(.22, .8, .24, 1);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; }
+  html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; overscroll-behavior: none; touch-action: manipulation; }
 
   /* 402px-wide artboard from the Figma frames, scaled to fit the screen. */
   #stage {
@@ -68,10 +68,12 @@
   .pill { width: 209px; height: 60px; background: var(--white); border-radius: 25px;
     display: flex; align-items: center; justify-content: center; }
   #date {
-    width: 190px; padding: 0; margin: 0; border: 0; outline: 0; background: transparent;
+    width: 100%; height: 100%; padding: 0; margin: 0; border: 0; outline: 0; background: transparent;
+    border-radius: inherit; -webkit-appearance: none; appearance: none;
     color: var(--ink); text-align: center;
     font: 32px/normal "Pixelify Sans", sans-serif; caret-color: var(--ink);
   }
+  #date::placeholder { color: var(--ink); opacity: .4; }
   #date::selection { background: var(--card); color: var(--ink); }
   .pill.shake { animation: shake .4s; }
   @keyframes shake { 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
@@ -123,7 +125,7 @@
       <form class="step" id="dateForm" autocomplete="off">
         <p class="txt" id="dateLabel">escolha a data:</p>
         <div class="pill" id="pill">
-          <input id="date" type="text" inputmode="numeric" enterkeyhint="go" maxlength="10"
+          <input id="date" type="text" inputmode="numeric" enterkeyhint="go"
                  placeholder="12/09/2026" aria-labelledby="dateLabel">
         </div>
       </form>
@@ -156,8 +158,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const WALK_MIN_MS = 3200; // the walker stays on screen at least this long
 
 /* ---------- layout ---------- */
+// Scale to the screen. The on-screen keyboard only shrinks the height, so height
+// changes are ignored unless the width really changed (e.g. rotating the phone).
+let fitW = 0, fitH = 0;
 function fit() {
-  const s = Math.min(innerWidth / 402, innerHeight / 620);
+  if (Math.abs(innerWidth - fitW) > 40) { fitW = innerWidth; fitH = innerHeight; }
+  else fitH = Math.max(fitH, innerHeight);
+  const s = Math.min(fitW / 402, fitH / 620);
   $("stage").style.setProperty("--s", s);
 }
 addEventListener("resize", fit); fit();
@@ -337,7 +344,8 @@ const pad = n => String(n).padStart(2, "0");
 function fillStep() {
   const n = state.groups.length, i = state.step, g = state.groups[i];
   $("dateLabel").textContent = n === 1 ? "escolha a data:" : i === 0 ? "escolha a 1ª data:" : `agora a ${i + 1}ª data:`;
-  $("date").value = g.year != null ? `${pad(g.day)}/${pad(g.month + 1)}/${g.year}` : "";
+  $("date").placeholder = g.year != null ? `${pad(g.day)}/${pad(g.month + 1)}/${g.year}` : "12/09/2026";
+  $("date").value = "";
 }
 
 function parseDate(v) {
@@ -358,13 +366,13 @@ $("date").addEventListener("input", e => {
   e.target.value = v;
   if (digits.length === 8 && e.inputType !== "deleteContentBackward") submitDate();
 });
-$("date").addEventListener("focus", e => e.target.select());
 $("dateForm").addEventListener("submit", e => { e.preventDefault(); submitDate(); });
 
 let busy = false;
 async function submitDate() {
   if (busy) return;
-  const t = parseDate($("date").value);
+  const input = $("date");
+  const t = parseDate(input.value || (state.groups[state.step].year != null ? input.placeholder : ""));
   if (!t) {
     const p = $("pill"); p.classList.remove("shake"); void p.offsetWidth; p.classList.add("shake");
     return;
@@ -383,7 +391,6 @@ async function submitDate() {
     void step.offsetWidth;
     step.classList.remove("enter");
     $("date").focus({ preventScroll: true });
-    $("date").select();
     busy = false;
     return;
   }
