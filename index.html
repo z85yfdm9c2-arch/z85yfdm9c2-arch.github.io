@@ -67,14 +67,22 @@
   .step.enter { opacity: 0; transform: translateX(18px); transition: none; }
   .pill { width: 209px; height: 60px; background: var(--white); border-radius: 25px;
     display: flex; align-items: center; justify-content: center; }
-  #date {
+  #date, #time {
     width: 100%; height: 100%; padding: 0; margin: 0; border: 0; outline: 0; background: transparent;
     border-radius: inherit; -webkit-appearance: none; appearance: none;
     color: var(--ink); text-align: center;
     font: 32px/normal "Pixelify Sans", sans-serif; caret-color: var(--ink);
   }
-  #date::placeholder { color: var(--ink); opacity: .4; }
-  #date::selection { background: var(--card); color: var(--ink); }
+  #date::placeholder, #time::placeholder { color: var(--ink); opacity: .4; }
+  #date::selection, #time::selection { background: var(--card); color: var(--ink); }
+  .ampm { display: flex; gap: 12px; }
+  .ampm button {
+    width: 76px; height: 44px; border-radius: 22px; border: 1px solid transparent; padding: 0;
+    background: var(--white); color: var(--ink); font: 24px/1 "Pixelify Sans", sans-serif; cursor: pointer;
+    transition: background .2s var(--ease), border-color .2s, transform .15s var(--ease);
+  }
+  .ampm button.on { background: var(--green); border-color: var(--ink); }
+  .ampm button:active { transform: scale(.94); }
   .pill.shake { animation: shake .4s; }
   @keyframes shake { 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
 
@@ -127,6 +135,20 @@
         <div class="pill" id="pill">
           <input id="date" type="text" inputmode="numeric" enterkeyhint="go"
                  placeholder="12/09/2026" aria-labelledby="dateLabel">
+        </div>
+      </form>
+    </section>
+
+    <section class="screen" data-screen="time" data-h="272">
+      <form class="step" id="timeForm" autocomplete="off">
+        <p class="txt" id="timeLabel">escolha o horário:</p>
+        <div class="pill" id="tpill">
+          <input id="time" type="text" inputmode="numeric" enterkeyhint="go"
+                 placeholder="04:25" aria-labelledby="timeLabel">
+        </div>
+        <div class="ampm" role="group" aria-label="AM ou PM">
+          <button type="button" data-ap="AM">AM</button>
+          <button type="button" data-ap="PM">PM</button>
         </div>
       </form>
     </section>
@@ -186,7 +208,7 @@ function pulse() {
   setTimeout(() => c.classList.remove("pulse"), 160);
 }
 
-/* ---------- date finding ---------- */
+/* ---------- finding dates and times ---------- */
 const MONTHS = ["January","February","March","April","May","June","July",
   "August","September","October","November","December"];
 const ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -200,6 +222,8 @@ const DATE_RE = (() => {
     "(?:(,? ?[ \\-./]?|, ?)(\\d{4}|\\d{2})(?!\\d))?" +
     "|(,? +)(\\d{4})(?!\\d))?", "g");
 })();
+// "04:25 PM", "4:25pm"
+const TIME_RE = /(?<![\d:])(\d{1,2}):(\d{2})(\s?)(AM|PM|am|pm)(?![A-Za-z])/g;
 
 function classify(word) {
   const w = word.toLowerCase();
@@ -212,7 +236,9 @@ function ordinal(n) {
   if (n % 100 >= 11 && n % 100 <= 13) return "th";
   return ["th", "st", "nd", "rd"][n % 10] || "th";
 }
-function replacementFor(m, t) {
+const pad = n => String(n).padStart(2, "0");
+
+function dateText(m, t) {
   let month = m.full ? MONTHS[t.month] : ABBR[t.month];
   if (m.word.length > 1 && m.word === m.word.toUpperCase()) month = month.toUpperCase();
   if (m.dayStr == null && m.yearStr != null) return month + m.sep2 + t.year;
@@ -223,12 +249,18 @@ function replacementFor(m, t) {
   if (padded && d.length === 1) d = "0" + d;
   if (m.dayStr.length > digits.length) d += ordinal(t.day);
   let out = month + m.sep1 + d;
-  if (m.yearStr != null) out += m.sep2 + (m.yearStr.length === 2 ? String(t.year % 100).padStart(2, "0") : t.year);
+  if (m.yearStr != null) out += m.sep2 + (m.yearStr.length === 2 ? pad(t.year % 100) : t.year);
   return out;
 }
+function timeText(m, t) {
+  const h = m.hStr.length === 2 ? pad(t.h) : String(t.h);
+  const ap = m.ap === m.ap.toLowerCase() ? t.ap.toLowerCase() : t.ap;
+  return `${h}:${pad(t.m)}${m.sp}${ap}`;
+}
 
-// items: text pieces with dates; groups: one per distinct original date, in document order.
-const state = { bytes: null, name: "", items: [], groups: [], step: 0, out: null };
+// items: text pieces with something to change.
+// steps: one question per distinct date, then one per distinct time, in document order.
+const state = { bytes: null, name: "", items: [], steps: [], step: 0, out: null };
 
 async function scan(bytes) {
   const items = [];
@@ -237,17 +269,25 @@ async function scan(bytes) {
     const tc = await (await doc.getPage(p)).getTextContent();
     for (const it of tc.items) {
       if (!it.str) continue;
-      DATE_RE.lastIndex = 0;
       const found = [];
       let r;
+      DATE_RE.lastIndex = 0;
       while ((r = DATE_RE.exec(it.str))) {
         const c = classify(r[1]);
-        const m = { word: r[1], start: r.index, end: r.index + r[0].length, ...c,
+        const m = { kind: "date", word: r[1], start: r.index, end: r.index + r[0].length, ...c,
           sep1: r[2] ?? "", dayStr: r[3] ?? null, sep2: r[4] ?? r[6] ?? "", yearStr: r[5] ?? r[7] ?? null };
         // A lone "May" is the verb ("To Whom It May Concern"), not a date.
         m.on = !(m.idx === 4 && m.dayStr == null && m.yearStr == null);
         found.push(m);
       }
+      TIME_RE.lastIndex = 0;
+      while ((r = TIME_RE.exec(it.str))) {
+        const h = +r[1], mi = +r[2];
+        if (h < 1 || h > 12 || mi > 59) continue;
+        found.push({ kind: "time", start: r.index, end: r.index + r[0].length, on: true,
+          hStr: r[1], h, m: mi, sp: r[3], ap: r[4] });
+      }
+      found.sort((a, b) => a.start - b.start);
       if (found.some(m => m.on)) items.push({ page: p - 1, str: it.str, transform: it.transform, width: it.width, matches: found });
     }
   }
@@ -255,23 +295,30 @@ async function scan(bytes) {
 }
 
 // The same date written twice ("September 23, 2026" and "Sep-23-26") is asked only once.
-function groupDates(items) {
-  const groups = [], byKey = new Map(), loose = [];
-  for (const m of items.flatMap(i => i.matches).filter(m => m.on)) {
+function buildSteps(items) {
+  const all = items.flatMap(i => i.matches).filter(m => m.on);
+  const dates = [], times = [], byKey = new Map(), loose = [];
+  for (const m of all) {
+    if (m.kind === "time") {
+      const key = `t${m.h}:${m.m}${m.ap.toUpperCase()}`;
+      let g = byKey.get(key);
+      if (!g) { g = { type: "time", h: m.h, m: m.m, ap: m.ap.toUpperCase(), matches: [], target: null }; byKey.set(key, g); times.push(g); }
+      g.matches.push(m); continue;
+    }
     if (m.dayStr == null) { loose.push(m); continue; }
     const day = parseInt(m.dayStr, 10);
     const year = m.yearStr == null ? null : (m.yearStr.length === 2 ? 2000 + +m.yearStr : +m.yearStr);
-    const key = `${m.idx}-${day}-${year ?? ""}`;
+    const key = `d${m.idx}-${day}-${year ?? ""}`;
     let g = byKey.get(key);
-    if (!g) { g = { month: m.idx, day, year, matches: [], target: null }; byKey.set(key, g); groups.push(g); }
+    if (!g) { g = { type: "date", month: m.idx, day, year, matches: [], target: null }; byKey.set(key, g); dates.push(g); }
     g.matches.push(m);
   }
   // Month with no day ("October 2026"): follows the first date.
   if (loose.length) {
-    if (!groups.length) groups.push({ month: loose[0].idx, day: 1, year: null, matches: [], target: null });
-    groups[0].matches.push(...loose);
+    if (!dates.length) dates.push({ type: "date", month: loose[0].idx, day: 1, year: null, matches: [], target: null });
+    dates[0].matches.push(...loose);
   }
-  return groups;
+  return [...dates, ...times];
 }
 
 async function buildPdf() {
@@ -280,18 +327,23 @@ async function buildPdf() {
   const regular = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const pages = doc.getPages();
-  const targetOf = new Map();
-  for (const g of state.groups) for (const m of g.matches) targetOf.set(m, g.target);
+  const stepOf = new Map();
+  for (const g of state.steps) for (const m of g.matches) stepOf.set(m, g);
+  const textFor = m => {
+    const g = stepOf.get(m);
+    return m.kind === "time" ? timeText(m, g.target) : dateText(m, g.target);
+  };
 
   for (const item of state.items) {
     const sel = item.matches.filter(m => m.on);
     const [a, b, c, d, x0, y0] = item.transform;
     if (Math.abs(b) > 0.001 || Math.abs(c) > 0.001) continue;
     const size = Math.abs(d);
-    const font = sel.some(m => m.full) ? bold : regular;
+    // Full month name -> bold; everything else (abbreviated dates, times) -> regular.
+    const font = sel.some(m => m.kind === "date" && m.full) ? bold : regular;
     let newStr = "", pos = 0;
     for (const m of item.matches) {
-      newStr += item.str.slice(pos, m.start) + (m.on ? replacementFor(m, targetOf.get(m)) : item.str.slice(m.start, m.end));
+      newStr += item.str.slice(pos, m.start) + (m.on ? textFor(m) : item.str.slice(m.start, m.end));
       pos = m.end;
     }
     newStr += item.str.slice(pos);
@@ -328,24 +380,43 @@ $("pdfFile").addEventListener("change", async e => {
     state.name = f.name.replace(/\.pdf$/i, "");
     state.bytes = new Uint8Array(await f.arrayBuffer());
     state.items = await scan(state.bytes);
-    state.groups = groupDates(state.items);
+    state.steps = buildSteps(state.items);
   } catch {
     setUploadMsg(["esse pdf deu ruim", "(toque aqui)"]); return;
   }
-  if (!state.groups.length) { setUploadMsg(["nao achei data nesse pdf", "(toque aqui)"]); return; }
+  if (!state.steps.length) { setUploadMsg(["nao achei data nesse pdf", "(toque aqui)"]); return; }
   setUploadMsg(DEFAULT_MSG);
   state.step = 0;
   fillStep();
-  show("date");
-  setTimeout(() => $("date").focus({ preventScroll: true }), 450);
+  show(state.steps[0].type);
+  setTimeout(() => focusField(), 450);
 });
 
-const pad = n => String(n).padStart(2, "0");
+const fieldOf = type => $(type === "time" ? "time" : "date");
+function focusField() { fieldOf(state.steps[state.step].type).focus({ preventScroll: true }); }
+
 function fillStep() {
-  const n = state.groups.length, i = state.step, g = state.groups[i];
-  $("dateLabel").textContent = n === 1 ? "escolha a data:" : i === 0 ? "escolha a 1ª data:" : `agora a ${i + 1}ª data:`;
-  $("date").placeholder = g.year != null ? `${pad(g.day)}/${pad(g.month + 1)}/${g.year}` : "12/09/2026";
-  $("date").value = "";
+  const g = state.steps[state.step];
+  if (g.type === "date") {
+    const n = state.steps.filter(s => s.type === "date").length;
+    const i = state.steps.indexOf(g);
+    $("dateLabel").textContent = n === 1 ? "escolha a data:" : i === 0 ? "escolha a 1ª data:" : `agora a ${i + 1}ª data:`;
+    $("date").placeholder = g.year != null ? `${pad(g.day)}/${pad(g.month + 1)}/${g.year}` : "12/09/2026";
+    $("date").value = "";
+  } else {
+    const times = state.steps.filter(s => s.type === "time");
+    const i = times.indexOf(g);
+    $("timeLabel").textContent = times.length === 1 ? "escolha o horário:" : `escolha o ${i + 1}º horário:`;
+    $("time").placeholder = `${pad(g.h)}:${pad(g.m)}`;
+    $("time").value = "";
+    setAmPm(g.ap);
+  }
+}
+
+let ampm = "PM";
+function setAmPm(v) {
+  ampm = v;
+  document.querySelectorAll(".ampm button").forEach(b => b.classList.toggle("on", b.dataset.ap === v));
 }
 
 function parseDate(v) {
@@ -356,47 +427,75 @@ function parseDate(v) {
   if (dt.getFullYear() !== year || dt.getMonth() !== month || dt.getDate() !== day) return null;
   return { day, month, year };
 }
+function parseTime(v) {
+  const m = v.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  const h = +m[1], mi = +m[2];
+  return h >= 1 && h <= 12 && mi <= 59 ? { h, m: mi } : null;
+}
 
-// Mask: digits only, slashes added automatically. Goes on when the date is complete.
+// Masks: digits only, separators added automatically.
 $("date").addEventListener("input", e => {
   const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
   let v = digits.slice(0, 2);
   if (digits.length > 2) v += "/" + digits.slice(2, 4);
   if (digits.length > 4) v += "/" + digits.slice(4);
   e.target.value = v;
-  if (digits.length === 8 && e.inputType !== "deleteContentBackward") submitDate();
+  if (digits.length === 8 && e.inputType !== "deleteContentBackward") submitStep();
 });
-$("dateForm").addEventListener("submit", e => { e.preventDefault(); submitDate(); });
+$("time").addEventListener("input", e => {
+  const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
+  e.target.value = digits.length > 2 ? digits.slice(0, 2) + ":" + digits.slice(2) : digits;
+});
+$("dateForm").addEventListener("submit", e => { e.preventDefault(); submitStep(); });
+$("timeForm").addEventListener("submit", e => { e.preventDefault(); submitStep(); });
+// Tapping AM or PM picks it and confirms the time.
+document.querySelectorAll(".ampm button").forEach(b =>
+  b.addEventListener("click", () => { setAmPm(b.dataset.ap); submitStep(); }));
+
+function shake(id) {
+  const p = $(id); p.classList.remove("shake"); void p.offsetWidth; p.classList.add("shake");
+}
 
 let busy = false;
-async function submitDate() {
+async function submitStep() {
   if (busy) return;
-  const input = $("date");
-  const t = parseDate(input.value || (state.groups[state.step].year != null ? input.placeholder : ""));
-  if (!t) {
-    const p = $("pill"); p.classList.remove("shake"); void p.offsetWidth; p.classList.add("shake");
-    return;
+  const g = state.steps[state.step];
+  if (g.type === "date") {
+    const input = $("date");
+    const t = parseDate(input.value || (g.year != null ? input.placeholder : ""));
+    if (!t) return shake("pill");
+    g.target = t;
+  } else {
+    const t = parseTime($("time").value || $("time").placeholder);
+    if (!t) return shake("tpill");
+    g.target = { ...t, ap: ampm };
   }
-  state.groups[state.step].target = t;
 
-  // More dates to ask: slide to the next question.
-  if (state.step < state.groups.length - 1) {
+  const next = state.steps[state.step + 1];
+  if (next) {
     busy = true;
-    const step = $("dateForm");
-    step.classList.add("swap");
-    await sleep(190);
-    state.step++;
-    fillStep();
-    step.classList.remove("swap"); step.classList.add("enter");
-    void step.offsetWidth;
-    step.classList.remove("enter");
-    $("date").focus({ preventScroll: true });
+    if (next.type === g.type) {
+      // Same kind of question: slide to the next one.
+      const form = $(g.type === "time" ? "timeForm" : "dateForm");
+      form.classList.add("swap");
+      await sleep(190);
+      state.step++; fillStep();
+      form.classList.remove("swap"); form.classList.add("enter");
+      void form.offsetWidth;
+      form.classList.remove("enter");
+    } else {
+      state.step++; fillStep();
+      show(next.type);
+      await sleep(300);
+    }
+    focusField();
     busy = false;
     return;
   }
 
   busy = true;
-  $("date").blur();
+  document.activeElement?.blur();
   show("work");
   const started = Date.now();
   try {
@@ -410,7 +509,7 @@ async function submitDate() {
 }
 
 function reset() {
-  state.bytes = null; state.items = []; state.groups = []; state.out = null; state.step = 0;
+  state.bytes = null; state.items = []; state.steps = []; state.out = null; state.step = 0;
   setUploadMsg(DEFAULT_MSG);
   show("upload");
 }
