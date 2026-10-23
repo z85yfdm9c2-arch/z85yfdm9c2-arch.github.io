@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#06033e">
+<title>DPP Services</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<style>
+  /* Coral Pixels without its color layers (only the title letters), so it renders plain white like in Figma. */
+  @font-face { font-family: "Coral Pixels Plain"; src: url(data:font/woff;base64,d09GRgABAAAAAAVMAA4AAAAAB5AAAQABAAAAAAAAAAAAAAAAAAAAAAAAAABHREVGAAAEqAAAABYAAAAWABIACkdQT1MAAATAAAAAXgAAAIgsCySzR1NVQgAABSAAAAApAAAAKrj6uPRPUy8yAAABtAAAAEYAAABggC2B3WNtYXAAAAIcAAAASgAAAFwBQQEjZ2FzcAAABKAAAAAIAAAACAAAABBnbHlmAAACgAAAAQYAAAIgvN65C2hlYWQAAAFEAAAANgAAADYr3zHeaGhlYQAAAXwAAAAgAAAAJAZ6BQBobXR4AAAB/AAAACAAAAAoFhL/s2xvY2EAAAJoAAAAFgAAABYCoQIibWF4cAAAAZwAAAAYAAAAIAANACFuYW1lAAADiAAAAQMAAAIWLfJFO3Bvc3QAAASMAAAAEwAAACD/nwAyAAEAAAABAAAwKeTkXw889QAPA+gAAAAA41NnhwAAAADnAIcM/7P/swK1ArUAAAAGAAIAAAAAAAB4nGNgZGBg4f+3jIGBaev/zf83M21lfsGACrgAruAHgHicY2BkYGDgYlBgYGIAAUYGNAAABKwAL3icY2BhcmecwMDKwMDUxRTBwMDgDaEZ4xiMGJ0ZUAEjMqckMa+U4QCDAkMYC/+/ZQwMLAKMjTA1TNJMW4GUAgMzANXECgQAAHicY8pgYGBkYWBgAtJMWyE0YyOUD8LSIPH/mwFUwwXXeJxjYGBgYmBgYAZiESDJCKZZGDyANB8DB1COjUGBwZXBkyGAIZgh7P9/oLgCgzOYHwTi/3/4f///Pf+3/d/6fzNYNxIAADxDElgAAAAAAAAAAAApAEwAbACAAKEAxQDsARAAAHicZZFBTsMwEEXH7pIFsiILoS5QlQXr1licYu7BLVCuMdeoegvELZBPQcr/Y6tEME5sj5N5/l8jQeR6jm/xIk8iNZVa6iGXPOe54k0l44QZ86oaFlVTRMNjGj65x8n6rj1EoiDiBcR7eRA51pJmZ2IF59nzOanGfa/VvrX1g9vwoutJJDiFujYMaqIaqgQvs9DUHEFGA62ROerDgvq7TX1iDT34jd9fOtTynumP2u4aa8KtOqya/uqG/cVs4zfL439C8RE2DAStbuw7p3di3ztxpL86+yg35zdV1dw06pxg1pi3bp5fJF7PQ9VEVa+DdRiuyJicyb930aU4gxNwbATmH8d3gP4AAHicfZBNTgJBEIW/BsS4cW1czYrAgh8NRiNuxAsYQly4E5VhdGTMMBi5iGfxGJzAs/i6mJgZE0inUq+qXtWramCfe6q42gHwLdtgx5GiDa5wyDrHVa74yXGNpjvO8R5jN8xxnYb74oaEd1akRITMyAg4pSfrC42VeZb3rJQHYuFbMT+VjVlYlKr2ovjReq9Zys+M7+tNm5lJY8ElXb1Q/Z6xZEJHXQlvymaaPlfuVdWpcnNlugXddkm3tXWjkXyoObFqKSdS6Nkb/CkMCr3Fzva/3u03l3l3ivytkW0dlDQDu30qnv+VRFdHdpn/lw9jXsj6snPpn/Ekm5Su27HhL9yUVE0AeJxjYGYAg/9zGIwYsAAAKoMB0QAAAQAB//8ADwABAAAADAAAAAAAAAACAAEAAgAJAAEAAHicZYorDoBADERfC1k+gkMQJAqJJigkF0CgICsI91+6tXQyyczrIEDLwIQu67bT3ccb6SiNkxL5L9f5ROqc3CVqTcxK78uRmcL0P3EeaCwF24pTdRVU1huTfj67CAkAAHicY2BkYGDgYlBj0GBgcnHzCWHgy0ksyWOQYGABijP8/88ABwBtlwVdAAAA) format("woff"); }
+  :root {
+    --bg: #06033e;
+    --card: #d9d9d9;
+    --ink: #000000;
+    --white: #ffffff;
+    --green: #0b8d04;
+    --ease: cubic-bezier(.22, .8, .24, 1);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; }
+
+  /* 402px-wide artboard from the Figma frames, scaled to fit the screen. */
+  #stage {
+    position: absolute; top: 0; left: 50%;
+    width: 402px; height: 874px;
+    transform-origin: top center;
+    transform: translateX(-50%) scale(var(--s, 1));
+  }
+  .title {
+    position: absolute; left: 0; right: 0; top: 25px; margin: 0; text-align: center;
+    font: 32px/normal "Coral Pixels Plain", serif; color: var(--white);
+    cursor: pointer; user-select: none;
+  }
+  .txt { margin: 0; font: 24px/normal "Pixelify Sans", sans-serif; color: var(--ink); text-align: center; }
+
+  /* Grey card, centered; its height eases between screens. */
+  #card {
+    position: absolute; left: 53px; top: 335px; width: 296px; height: 159px;
+    background: var(--card); border-radius: 60px; overflow: hidden;
+    transition: height .55s var(--ease), transform .25s var(--ease);
+  }
+  #card.pulse { transform: scale(.97); }
+
+  /* Screens fade and slide between each other inside the card. */
+  .screen {
+    position: absolute; inset: 0; pointer-events: none;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    opacity: 0; transform: translateY(14px); filter: blur(4px);
+    transition: opacity .38s var(--ease), transform .45s var(--ease), filter .38s var(--ease);
+  }
+  .screen.active { opacity: 1; transform: none; filter: none; pointer-events: auto; transition-delay: .18s; }
+  .screen.leaving { opacity: 0; transform: translateY(-14px); filter: blur(4px); transition-delay: 0s; }
+
+  /* 1 — upload */
+  #pick { position: absolute; inset: 0; cursor: pointer; }
+  #pdfFile { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+  /* 2 — date (one step per date in the PDF) */
+  .step { display: flex; flex-direction: column; align-items: center; gap: 14px;
+    transition: opacity .25s var(--ease), transform .3s var(--ease); }
+  .step.swap { opacity: 0; transform: translateX(-18px); transition-duration: .18s; }
+  .step.enter { opacity: 0; transform: translateX(18px); transition: none; }
+  .pill { width: 209px; height: 60px; background: var(--white); border-radius: 25px;
+    display: flex; align-items: center; justify-content: center; }
+  #date {
+    width: 190px; padding: 0; margin: 0; border: 0; outline: 0; background: transparent;
+    color: var(--ink); text-align: center;
+    font: 32px/normal "Pixelify Sans", sans-serif; caret-color: var(--ink);
+  }
+  #date::selection { background: var(--card); color: var(--ink); }
+  .pill.shake { animation: shake .4s; }
+  @keyframes shake { 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+
+  /* 3 — working: two-frame sprite walking back and forth */
+  .walkway { position: relative; width: 216px; height: 92px; }
+  .walker { position: absolute; left: 0; top: 0; width: 82.5px; height: 91.5px;
+    animation: walk 2.6s ease-in-out infinite alternate; }
+  .walker i {
+    display: block; width: 100%; height: 100%;
+    background: url("data:image/png;base64,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") 0 0 / 165px 91.5px no-repeat;
+    image-rendering: pixelated;
+    animation: frames .42s steps(2) infinite, bob .21s ease-in-out infinite alternate;
+  }
+  @keyframes frames { to { background-position: -165px 0; } }
+  @keyframes bob { to { transform: translateY(-2px); } }
+  @keyframes walk { from { transform: translateX(0); } to { transform: translateX(133.5px); } }
+
+  /* 4 — download: round button with a pixel arrow */
+  #dl {
+    width: 92px; height: 92px; border-radius: 50%; padding: 0;
+    background: var(--green); border: 1px solid var(--ink); cursor: pointer;
+    display: grid; place-items: center;
+    transition: transform .18s var(--ease), filter .15s;
+  }
+  #dl:hover { filter: brightness(1.08); transform: scale(1.05); }
+  #dl:active { transform: scale(.93); }
+  #dl svg { width: 40px; height: 40px; shape-rendering: crispEdges; animation: nudge 1.4s ease-in-out infinite; }
+  @keyframes nudge { 50% { transform: translateY(3px); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .screen, #card, .step { transition-duration: .01s !important; }
+    .walker { animation-duration: 6s; }
+    #dl svg { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <p class="title" id="home">DPP SERVICES</p>
+  <div id="card">
+    <section class="screen active" data-screen="upload" data-h="159">
+      <div class="txt" id="uploadMsg"><p style="margin:0">manda o pdf porra</p><p style="margin:0">(toque aqui)</p></div>
+      <label id="pick" for="pdfFile" aria-label="Escolher PDF"></label>
+      <input type="file" id="pdfFile" accept="application/pdf">
+    </section>
+
+    <section class="screen" data-screen="date" data-h="216">
+      <form class="step" id="dateForm" autocomplete="off">
+        <p class="txt" id="dateLabel">escolha a data:</p>
+        <div class="pill" id="pill">
+          <input id="date" type="text" inputmode="numeric" enterkeyhint="go" maxlength="10"
+                 placeholder="12/09/2026" aria-labelledby="dateLabel">
+        </div>
+      </form>
+    </section>
+
+    <section class="screen" data-screen="work" data-h="216" aria-live="polite">
+      <p class="txt">trabalhando ....</p>
+      <div class="walkway"><div class="walker"><i></i></div></div>
+    </section>
+
+    <section class="screen" data-screen="done" data-h="216">
+      <button id="dl" type="button" aria-label="Baixar PDF">
+        <svg viewBox="0 0 10 10" aria-hidden="true" fill="#000">
+          <rect x="4" y="0" width="2" height="5"/><rect x="2" y="4" width="6" height="1"/>
+          <rect x="3" y="5" width="4" height="1"/><rect x="4" y="6" width="2" height="1"/>
+          <rect x="1" y="8" width="8" height="2"/>
+        </svg>
+      </button>
+      <p class="txt">download :)</p>
+    </section>
+  </div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const WALK_MIN_MS = 3200; // the walker stays on screen at least this long
+
+/* ---------- layout ---------- */
+function fit() {
+  const s = Math.min(innerWidth / 402, innerHeight / 620);
+  $("stage").style.setProperty("--s", s);
+}
+addEventListener("resize", fit); fit();
+
+/* ---------- screen transitions ---------- */
+let current = "upload";
+function show(name) {
+  if (name === current) return;
+  const from = document.querySelector(`[data-screen="${current}"]`);
+  const to = document.querySelector(`[data-screen="${name}"]`);
+  from.classList.remove("active"); from.classList.add("leaving");
+  setTimeout(() => from.classList.remove("leaving"), 450);
+  to.classList.add("active");
+  $("card").style.height = to.dataset.h + "px";
+  current = name;
+}
+function pulse() {
+  const c = $("card"); c.classList.add("pulse");
+  setTimeout(() => c.classList.remove("pulse"), 160);
+}
+
+/* ---------- date finding ---------- */
+const MONTHS = ["January","February","March","April","May","June","July",
+  "August","September","October","November","December"];
+const ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DATE_RE = (() => {
+  const words = [];
+  for (const m of [...MONTHS, ...ABBR, "Sept"]) words.push(m, m.toUpperCase());
+  const uniq = [...new Set(words)].sort((a, b) => b.length - a.length);
+  return new RegExp(
+    "(?<![A-Za-z])(" + uniq.join("|") + ")(?![A-Za-z])" +
+    "(?:([ \\-./]+)(\\d{1,2}(?:st|nd|rd|th)?)(?![\\dA-Za-z])" +
+    "(?:(,? ?[ \\-./]?|, ?)(\\d{4}|\\d{2})(?!\\d))?" +
+    "|(,? +)(\\d{4})(?!\\d))?", "g");
+})();
+
+function classify(word) {
+  const w = word.toLowerCase();
+  let idx = MONTHS.findIndex(m => m.toLowerCase() === w);
+  if (idx >= 0) return { idx, full: true };
+  if (w === "sept") return { idx: 8, full: false };
+  return { idx: ABBR.findIndex(m => m.toLowerCase() === w), full: false };
+}
+function ordinal(n) {
+  if (n % 100 >= 11 && n % 100 <= 13) return "th";
+  return ["th", "st", "nd", "rd"][n % 10] || "th";
+}
+function replacementFor(m, t) {
+  let month = m.full ? MONTHS[t.month] : ABBR[t.month];
+  if (m.word.length > 1 && m.word === m.word.toUpperCase()) month = month.toUpperCase();
+  if (m.dayStr == null && m.yearStr != null) return month + m.sep2 + t.year;
+  if (m.dayStr == null) return month;
+  const digits = m.dayStr.match(/^\d+/)[0];
+  let d = String(t.day);
+  const padded = digits.startsWith("0") || (digits.length === 2 && /[-./]/.test(m.sep1));
+  if (padded && d.length === 1) d = "0" + d;
+  if (m.dayStr.length > digits.length) d += ordinal(t.day);
+  let out = month + m.sep1 + d;
+  if (m.yearStr != null) out += m.sep2 + (m.yearStr.length === 2 ? String(t.year % 100).padStart(2, "0") : t.year);
+  return out;
+}
+
+// items: text pieces with dates; groups: one per distinct original date, in document order.
+const state = { bytes: null, name: "", items: [], groups: [], step: 0, out: null };
+
+async function scan(bytes) {
+  const items = [];
+  const doc = await pdfjsLib.getDocument({ data: bytes.slice() }).promise;
+  for (let p = 1; p <= doc.numPages; p++) {
+    const tc = await (await doc.getPage(p)).getTextContent();
+    for (const it of tc.items) {
+      if (!it.str) continue;
+      DATE_RE.lastIndex = 0;
+      const found = [];
+      let r;
+      while ((r = DATE_RE.exec(it.str))) {
+        const c = classify(r[1]);
+        const m = { word: r[1], start: r.index, end: r.index + r[0].length, ...c,
+          sep1: r[2] ?? "", dayStr: r[3] ?? null, sep2: r[4] ?? r[6] ?? "", yearStr: r[5] ?? r[7] ?? null };
+        // A lone "May" is the verb ("To Whom It May Concern"), not a date.
+        m.on = !(m.idx === 4 && m.dayStr == null && m.yearStr == null);
+        found.push(m);
+      }
+      if (found.some(m => m.on)) items.push({ page: p - 1, str: it.str, transform: it.transform, width: it.width, matches: found });
+    }
+  }
+  return items;
+}
+
+// The same date written twice ("September 23, 2026" and "Sep-23-26") is asked only once.
+function groupDates(items) {
+  const groups = [], byKey = new Map(), loose = [];
+  for (const m of items.flatMap(i => i.matches).filter(m => m.on)) {
+    if (m.dayStr == null) { loose.push(m); continue; }
+    const day = parseInt(m.dayStr, 10);
+    const year = m.yearStr == null ? null : (m.yearStr.length === 2 ? 2000 + +m.yearStr : +m.yearStr);
+    const key = `${m.idx}-${day}-${year ?? ""}`;
+    let g = byKey.get(key);
+    if (!g) { g = { month: m.idx, day, year, matches: [], target: null }; byKey.set(key, g); groups.push(g); }
+    g.matches.push(m);
+  }
+  // Month with no day ("October 2026"): follows the first date.
+  if (loose.length) {
+    if (!groups.length) groups.push({ month: loose[0].idx, day: 1, year: null, matches: [], target: null });
+    groups[0].matches.push(...loose);
+  }
+  return groups;
+}
+
+async function buildPdf() {
+  const { PDFDocument, StandardFonts, rgb } = PDFLib;
+  const doc = await PDFDocument.load(state.bytes.slice());
+  const regular = await doc.embedFont(StandardFonts.Helvetica);
+  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const pages = doc.getPages();
+  const targetOf = new Map();
+  for (const g of state.groups) for (const m of g.matches) targetOf.set(m, g.target);
+
+  for (const item of state.items) {
+    const sel = item.matches.filter(m => m.on);
+    const [a, b, c, d, x0, y0] = item.transform;
+    if (Math.abs(b) > 0.001 || Math.abs(c) > 0.001) continue;
+    const size = Math.abs(d);
+    const font = sel.some(m => m.full) ? bold : regular;
+    let newStr = "", pos = 0;
+    for (const m of item.matches) {
+      newStr += item.str.slice(pos, m.start) + (m.on ? replacementFor(m, targetOf.get(m)) : item.str.slice(m.start, m.end));
+      pos = m.end;
+    }
+    newStr += item.str.slice(pos);
+    const natural = font.widthOfTextAtSize(item.str, size);
+    const k = natural > 0 && item.width > 0 ? item.width / natural : 1;
+    const startChar = sel[0].start;
+    const startX = x0 + font.widthOfTextAtSize(item.str.slice(0, startChar), size) * k;
+    const page = pages[item.page];
+    page.drawRectangle({ x: startX - size * 0.04, y: y0 - size * 0.24,
+      width: x0 + item.width - startX + size * 0.08, height: size * 1.2, color: rgb(1, 1, 1) });
+    let x = startX;
+    for (const ch of newStr.slice(startChar)) {
+      page.drawText(ch, { x, y: y0, size, font, color: rgb(0, 0, 0) });
+      x += font.widthOfTextAtSize(ch, size) * k;
+    }
+  }
+  return doc.save();
+}
+
+/* ---------- flow ---------- */
+const DEFAULT_MSG = ["manda o pdf porra", "(toque aqui)"];
+function setUploadMsg([a, b]) {
+  $("uploadMsg").children[0].textContent = a;
+  $("uploadMsg").children[1].textContent = b;
+}
+
+$("pdfFile").addEventListener("change", async e => {
+  const f = e.target.files[0];
+  e.target.value = "";
+  if (!f) return;
+  pulse();
+  setUploadMsg(["lendo...", ""]);
+  try {
+    state.name = f.name.replace(/\.pdf$/i, "");
+    state.bytes = new Uint8Array(await f.arrayBuffer());
+    state.items = await scan(state.bytes);
+    state.groups = groupDates(state.items);
+  } catch {
+    setUploadMsg(["esse pdf deu ruim", "(toque aqui)"]); return;
+  }
+  if (!state.groups.length) { setUploadMsg(["nao achei data nesse pdf", "(toque aqui)"]); return; }
+  setUploadMsg(DEFAULT_MSG);
+  state.step = 0;
+  fillStep();
+  show("date");
+  setTimeout(() => $("date").focus({ preventScroll: true }), 450);
+});
+
+const pad = n => String(n).padStart(2, "0");
+function fillStep() {
+  const n = state.groups.length, i = state.step, g = state.groups[i];
+  $("dateLabel").textContent = n === 1 ? "escolha a data:" : i === 0 ? "escolha a 1ª data:" : `agora a ${i + 1}ª data:`;
+  $("date").value = g.year != null ? `${pad(g.day)}/${pad(g.month + 1)}/${g.year}` : "";
+}
+
+function parseDate(v) {
+  const m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return null;
+  const day = +m[1], month = +m[2] - 1, year = +m[3];
+  const dt = new Date(year, month, day);
+  if (dt.getFullYear() !== year || dt.getMonth() !== month || dt.getDate() !== day) return null;
+  return { day, month, year };
+}
+
+// Mask: digits only, slashes added automatically. Goes on when the date is complete.
+$("date").addEventListener("input", e => {
+  const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+  let v = digits.slice(0, 2);
+  if (digits.length > 2) v += "/" + digits.slice(2, 4);
+  if (digits.length > 4) v += "/" + digits.slice(4);
+  e.target.value = v;
+  if (digits.length === 8 && e.inputType !== "deleteContentBackward") submitDate();
+});
+$("date").addEventListener("focus", e => e.target.select());
+$("dateForm").addEventListener("submit", e => { e.preventDefault(); submitDate(); });
+
+let busy = false;
+async function submitDate() {
+  if (busy) return;
+  const t = parseDate($("date").value);
+  if (!t) {
+    const p = $("pill"); p.classList.remove("shake"); void p.offsetWidth; p.classList.add("shake");
+    return;
+  }
+  state.groups[state.step].target = t;
+
+  // More dates to ask: slide to the next question.
+  if (state.step < state.groups.length - 1) {
+    busy = true;
+    const step = $("dateForm");
+    step.classList.add("swap");
+    await sleep(190);
+    state.step++;
+    fillStep();
+    step.classList.remove("swap"); step.classList.add("enter");
+    void step.offsetWidth;
+    step.classList.remove("enter");
+    $("date").focus({ preventScroll: true });
+    $("date").select();
+    busy = false;
+    return;
+  }
+
+  busy = true;
+  $("date").blur();
+  show("work");
+  const started = Date.now();
+  try {
+    state.out = await buildPdf();
+    await sleep(Math.max(0, WALK_MIN_MS - (Date.now() - started)));
+    show("done");
+  } catch {
+    setUploadMsg(["deu erro, tenta de novo", "(toque aqui)"]);
+    show("upload");
+  } finally { busy = false; }
+}
+
+function reset() {
+  state.bytes = null; state.items = []; state.groups = []; state.out = null; state.step = 0;
+  setUploadMsg(DEFAULT_MSG);
+  show("upload");
+}
+
+$("dl").addEventListener("click", () => {
+  if (!state.out) return;
+  const url = URL.createObjectURL(new Blob([state.out], { type: "application/pdf" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = state.name + "-editado.pdf";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  setTimeout(reset, 700);
+});
+
+// Tapping the title starts over.
+$("home").addEventListener("click", () => { if (!busy) reset(); });
+</script>
+</body>
+</html>
